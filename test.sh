@@ -1,13 +1,15 @@
 #!/usr/bin/bash
 
-zig build
+zig build --release=fast
 
-RUNS=500
-FILE=$(find -type f /etc)
+RUNS=100
+FILES=$(find /etc -type f -readable 2>/dev/null | head -1000 | tr '\n' ' ')
 
 cat $FILES >/dev/null
-echo "GNU cat:"
-time for ((n = 0; n < $RUNS; n++)); do /usr/bin/cat $FILES >/dev/null; done 2>&1
-echo
-echo "wcutils cat:"
-time for ((n = 0; n < $RUNS; n++)); do zig-out/bin/cat $FILES >/dev/null; done 2>&1
+
+for command in '/usr/bin/cat' zig-out/bin/cat
+do
+    echo "$command"
+    time for ((n = 0; n < $RUNS; n++)); do $command $FILES >/dev/null; done
+    echo
+done
